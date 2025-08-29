@@ -81,6 +81,9 @@ Python è il programma che fa funzionare lo script. Devi installarlo sul tuo com
 
 Lo script ha bisogno di alcune “librerie” per funzionare, come pezzi di un puzzle. Le installiamo con un file chiamato `requirements.txt`.
 
+Da terminale esegui:
+pip install --upgrade pip wheel setuptools
+
 1. Crea un file chiamato `requirements.txt` nella cartella `axeos_monitor`. Aprilo con un editor di testo (es. Blocco Note su Windows, TextEdit su Mac) e incolla questo testo:
    ```
    python-telegram-bot==20.3
