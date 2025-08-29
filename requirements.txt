@@ -14,10 +14,10 @@ beautifulsoup4==4.13.4
 #playwright==1.54.0
 
 # Grafici
-matplotlib==3.8.0
+#matplotlib==3.8.0
 
 # Controllo prese smart Meross
-meross-iot==0.4.6.0
+meross-iot==0.4.7.3
 
 # Controllo prese smart Tuya
 tinytuya==1.15.0
