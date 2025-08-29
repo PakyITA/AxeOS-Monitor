@@ -1,0 +1,23 @@
+# Bot Telegram
+python-telegram-bot==20.3
+
+# Richieste HTTP
+requests==2.31.0
+
+# Scheduler
+apscheduler==3.10.4
+
+# Parsing HTML
+beautifulsoup4==4.13.4
+
+# Browser Automation (per scraping dinamico)
+#playwright==1.54.0
+
+# Grafici
+matplotlib==3.8.0
+
+# Controllo prese smart Meross
+meross-iot==0.4.6.0
+
+# Controllo prese smart Tuya
+tinytuya==1.15.0
