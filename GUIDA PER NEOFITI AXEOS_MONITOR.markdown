@@ -75,9 +75,9 @@ Python è il programma che fa funzionare lo script. Devi installarlo sul tuo com
      cd axeos_monitor
      ```
 
-2. Scarica o copia lo script `axeos_monitor.py` in questa cartella. Puoi:
-   - Copiarlo da un sito o email.
-   - Chiedere allo sviluppatore (PakyITA) di fornirtelo.
+2. Scarica o copia lo script `axeos_monitor_v1.py` in questa cartella. Puoi:
+   - Clonarlo da github;
+   - Chiedere allo sviluppatore (@PakyITA su Telegram con la richiesta AxeOs Montor) di fornirtelo.
   
 Attivare l'ambiente virtuale:
 Da terminale:
