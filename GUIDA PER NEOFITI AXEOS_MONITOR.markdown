@@ -41,8 +41,10 @@ Python è il programma che fa funzionare lo script. Devi installarlo sul tuo com
 3. Se non c’è o la versione è vecchia (inferiore a 3.8), scarica Python da [python.org](https://www.python.org/downloads/) e installalo.
    - In alternativa, se hai Homebrew (un programma per gestire software su Mac), digita:
      ```bash
-     brew install python
+     brew install python3
      ```
+     Si consiglia vivamente di installare python 3.11
+     
 4. Verifica l’installazione:
    ```bash
    python3 --version
@@ -76,13 +78,22 @@ Python è il programma che fa funzionare lo script. Devi installarlo sul tuo com
 2. Scarica o copia lo script `axeos_monitor.py` in questa cartella. Puoi:
    - Copiarlo da un sito o email.
    - Chiedere allo sviluppatore (PakyITA) di fornirtelo.
+  
+Attivare l'ambiente virtuale:
+Da terminale:
+```
+python3.11 -m venv venv
+source venv/bin/activate  # Su Windows: venv\Scripts\activate
+```
+Da terminale esegui:
+```
+pip install --upgrade pip wheel setuptools #Se il primo comando non funziona prova questo>>> pip install --upgrade pip wheel setuptools
+```
 
 ## Passo 3: Installare i programmi necessari (dipendenze)
 
 Lo script ha bisogno di alcune “librerie” per funzionare, come pezzi di un puzzle. Le installiamo con un file chiamato `requirements.txt`.
 
-Da terminale esegui:
-pip install --upgrade pip wheel setuptools
 
 1. Crea un file chiamato `requirements.txt` nella cartella `axeos_monitor`. Aprilo con un editor di testo (es. Blocco Note su Windows, TextEdit su Mac) e incolla questo testo:
    ```
