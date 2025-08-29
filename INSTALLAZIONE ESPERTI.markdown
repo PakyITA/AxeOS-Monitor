@@ -13,8 +13,8 @@
 ## Passo 1: Installare Python
 
 ### Windows
-1. Scarica l'ultima versione di Python (3.8 o superiore) da [python.org](https://www.python.org/downloads/).
-   - Consigliato: Python 3.11 o 3.12.
+1. Scarica l'ultima versione di Python (3.11) da [python.org](https://www.python.org/downloads/).
+   - Consigliato: Python 3.11.
 2. Esegui il programma di installazione:
    - Spunta l'opzione **"Add Python to PATH"** durante l'installazione.
    - Scegli "Install Now" o personalizza il percorso di installazione.
@@ -31,7 +31,7 @@
    ```
 2. Se la versione è inferiore a 3.8 o non è installata, scarica Python da [python.org](https://www.python.org/downloads/) o usa Homebrew:
    ```bash
-   brew install python
+   brew install python3.11
    ```
 3. Verifica l'installazione:
    ```bash
@@ -66,11 +66,11 @@ Un ambiente virtuale isola le dipendenze del progetto, evitando conflitti con al
 2. Crea un ambiente virtuale:
    - Windows:
      ```bash
-     python -m venv venv
+     python3.11 -m venv venv
      ```
    - macOS/Linux:
      ```bash
-     python3 -m venv venv
+     python3.11 -m venv venv
      ```
 
 3. Attiva l'ambiente virtuale:
@@ -90,6 +90,11 @@ Un ambiente virtuale isola le dipendenze del progetto, evitando conflitti con al
    
    ```
 
+Eseguire l'upgrade di pip (potrebbe risultare necessario per il corretto funzionamento):
+   ```
+   pip install --upgrade pip
+   ```
+
 
 ## Passo 3: Installare le dipendenze
 
@@ -97,9 +102,28 @@ Lo script richiede diverse librerie Python elencate nel file `requirements.txt`.
 
 1. Crea un file `requirements.txt` nella directory del progetto con il seguente contenuto (IL FILE DOVREBBE ESSERE GIA' PRESENTE):
    ```
+   # Bot Telegram
    python-telegram-bot==20.3
+
+   # Richieste HTTP
    requests==2.31.0
-   meross-iot==1.3.2
+
+   # Scheduler
+   apscheduler==3.10.4
+
+   # Parsing HTML
+   beautifulsoup4==4.13.4
+
+   # Browser Automation (per scraping dinamico) - # Al momento non necessario
+   #playwright==1.54.0
+
+   # Grafici - # Al momento non necessario
+   #matplotlib==3.8.0
+
+   # Controllo prese smart Meross
+   meross-iot==0.4.7.3
+
+   # Controllo prese smart Tuya
    tinytuya==1.15.0
    ```
    **Nota**: Le librerie `apscheduler`, `beautifulsoup4`, `playwright` e `matplotlib` non sono necessarie per lo script attuale, quindi non sono incluse. Se le usi per altre funzionalità, aggiungile al file.
@@ -170,11 +194,11 @@ Se vuoi controllare le prese smart Meross, Sonoff o Tuya, configura i dispositiv
 2. Esegui lo script:
    - Windows:
      ```bash
-     python axeos_monitor.py
+     python axeos_monitor_v1.py
      ```
    - macOS/Linux:
      ```bash
-     python3 axeos_monitor.py
+     python3 axeos_monitor_v1.py
      ```
 
 3. **Configurazione iniziale**:
@@ -227,7 +251,7 @@ Se incontri problemi o hai bisogno di aiuto:
   - [python-telegram-bot](https://python-telegram-bot.readthedocs.io/)
   - [meross-iot](https://github.com/albertogeniola/MerossIot)
   - [tinytuya](https://github.com/jasonacox/tinytuya)
-- Contatta lo sviluppatore (PakyITA) tramite i canali indicati nello script.
+- Contatta lo sviluppatore (@PakyITA) tramite Telegram con riferimento a AxeOs Monitor.
 
 **Donazioni**:
 - Supporta lo sviluppo:
