@@ -163,101 +163,104 @@ async def control_smart_plug(smart_plug, turn_on: bool, get_status: bool = False
         return False, "Nessuna configurazione smart plug disponibile"
 
     try:
-        if smart_plug["type"] == "meross":
-            logger.info(f"Tentativo di controllo della presa Meross: {smart_plug['name']}")
-            client = await MerossHttpClient.async_from_user_password(
-                email=smart_plug["email"],
-                password=smart_plug["password"],
-                api_base_url="https://iotx-eu.meross.com"
-            )
-            logger.info("Connessione al client Meross riuscita")
+        async with asyncio.timeout(10):  # Timeout di 10 secondi
+            if smart_plug["type"] == "meross":
+                logger.info(f"Tentativo di controllo della presa Meross: {smart_plug['name']}")
+                client = await MerossHttpClient.async_from_user_password(
+                    email=smart_plug["email"],
+                    password=smart_plug["password"],
+                    api_base_url="https://iotx-eu.meross.com"
+                )
+                logger.info("Connessione al client Meross riuscita")
 
-            manager = MerossManager(http_client=client)
-            await manager.async_init()
-            logger.info("Inizializzazione manager completata")
-            await asyncio.wait_for(manager.async_device_discovery(), timeout=20.0)
-            devices = manager.find_devices()
-            logger.info(f"Dispositivi trovati: {[f'{d.name} (Tipo: {d.type})' for d in devices]}")
+                manager = MerossManager(http_client=client)
+                await manager.async_init()
+                logger.info("Inizializzazione manager completata")
+                await asyncio.wait_for(manager.async_device_discovery(), timeout=20.0)
+                devices = manager.find_devices()
+                logger.info(f"Dispositivi trovati: {[f'{d.name} (Tipo: {d.type})' for d in devices]}")
 
-            device = next((d for d in devices if d.name == smart_plug["name"]), None)
-            if not device:
-                logger.error(f"Nessuna presa trovata con il nome {smart_plug['name']}")
-                await client.async_logout()
-                return False, f"Nessuna presa trovata con il nome {smart_plug['name']}"
-
-            logger.info(f"Presa trovata: {device.name}")
-            await device.async_update()
-            logger.info(f"Presa {device.name} aggiornata con successo")
-
-            if get_status:
-                try:
-                    is_on = device.is_on
-                    status_text = "✅ Accesa" if is_on else "⚡ Spenta"
+                device = next((d for d in devices if d.name == smart_plug["name"]), None)
+                if not device:
+                    logger.error(f"Nessuna presa trovata con il nome {smart_plug['name']}")
                     await client.async_logout()
-                    return True, status_text
-                except AttributeError:
-                    logger.error(f"Proprietà is_on non supportata per {device.name}")
-                    await client.async_logout()
-                    return False, "Impossibile ottenere lo stato della presa"
+                    return False, f"Nessuna presa trovata con il nome {smart_plug['name']}"
 
-            if turn_on:
-                await device.async_turn_on()
-                logger.info(f"Presa {device.name} accesa")
-            else:
-                await device.async_turn_off()
-                logger.info(f"Presa {device.name} spenta")
+                logger.info(f"Presa trovata: {device.name}")
+                await device.async_update()
+                logger.info(f"Presa {device.name} aggiornata con successo")
 
-            await client.async_logout()
-            logger.info("Logout Meross completato")
-            return True, "Operazione completata con successo"
+                if get_status:
+                    try:
+                        is_on = device.is_on
+                        status_text = "✅ Accesa" if is_on else "⚡ Spenta"
+                        await client.async_logout()
+                        return True, status_text
+                    except AttributeError:
+                        logger.error(f"Proprietà is_on non supportata per {device.name}")
+                        await client.async_logout()
+                        return False, "Impossibile ottenere lo stato della presa"
 
-        elif smart_plug["type"] == "sonoff":
-            headers = {"Authorization": f"Bearer {smart_plug.get('token','')}"}
-            r = requests.get(f"http://{smart_plug['host']}/cm?cmnd=Power%20{'On' if turn_on else 'Off'}", headers=headers, timeout=5)
-            logger.info(f"Risposta Sonoff: {r.status_code}")
-            if get_status:
-                r = requests.get(f"http://{smart_plug['host']}/cm?cmnd=Power", headers=headers, timeout=5)
-                if r.status_code == 200:
-                    status = r.json().get("POWER", "UNKNOWN")
-                    status_text = "✅ Accesa" if status == "ON" else "⚡ Spenta"
-                    return True, status_text
-                return False, "Errore nel controllo dello stato della presa Sonoff"
-            return r.status_code == 200, "Operazione completata con successo" if r.status_code == 200 else "Errore nel controllo della presa Sonoff"
-
-        elif smart_plug["type"] == "tuya":
-            logger.info(f"Tentativo di controllo della presa Tuya: {smart_plug['device_id']}")
-            device = tinytuya.OutletDevice(
-                dev_id=smart_plug["device_id"],
-                address=smart_plug["ip"],
-                local_key=smart_plug["local_key"],
-                version=3.3
-            )
-            if get_status:
-                try:
-                    status = device.status()
-                    is_on = status.get("dps", {}).get("1", False)
-                    status_text = "✅ Accesa" if is_on else "⚡ Spenta"
-                    return True, status_text
-                except Exception as e:
-                    logger.error(f"Errore nel controllo dello stato della presa Tuya: {e}")
-                    return False, f"Errore nel controllo dello stato: {e}"
-            
-            try:
                 if turn_on:
-                    device.turn_on()
-                    logger.info(f"Presa Tuya {smart_plug['device_id']} accesa")
+                    await device.async_turn_on()
+                    logger.info(f"Presa {device.name} accesa")
                 else:
-                    device.turn_off()
-                    logger.info(f"Presa Tuya {smart_plug['device_id']} spenta")
+                    await device.async_turn_off()
+                    logger.info(f"Presa {device.name} spenta")
+
+                await client.async_logout()
+                logger.info("Logout Meross completato")
                 return True, "Operazione completata con successo"
-            except Exception as e:
-                logger.error(f"Errore nel controllo della presa Tuya: {e}")
-                return False, f"Errore: {e}"
 
-        else:
-            logger.error(f"Tipo di presa non supportato: {smart_plug['type']}")
-            return False, f"Tipo di presa non supportato: {smart_plug['type']}"
+            elif smart_plug["type"] == "sonoff":
+                headers = {"Authorization": f"Bearer {smart_plug.get('token','')}"}
+                r = requests.get(f"http://{smart_plug['host']}/cm?cmnd=Power%20{'On' if turn_on else 'Off'}", headers=headers, timeout=5)
+                logger.info(f"Risposta Sonoff: {r.status_code}")
+                if get_status:
+                    r = requests.get(f"http://{smart_plug['host']}/cm?cmnd=Power", headers=headers, timeout=5)
+                    if r.status_code == 200:
+                        status = r.json().get("POWER", "UNKNOWN")
+                        status_text = "✅ Accesa" if status == "ON" else "⚡ Spenta"
+                        return True, status_text
+                    return False, "Errore nel controllo dello stato della presa Sonoff"
+                return r.status_code == 200, "Operazione completata con successo" if r.status_code == 200 else "Errore nel controllo della presa Sonoff"
 
+            elif smart_plug["type"] == "tuya":
+                logger.info(f"Tentativo di controllo della presa Tuya: {smart_plug['device_id']}")
+                device = tinytuya.OutletDevice(
+                    dev_id=smart_plug["device_id"],
+                    address=smart_plug["ip"],
+                    local_key=smart_plug["local_key"],
+                    version=3.3
+                )
+                if get_status:
+                    try:
+                        status = device.status()
+                        is_on = status.get("dps", {}).get("1", False)
+                        status_text = "✅ Accesa" if is_on else "⚡ Spenta"
+                        return True, status_text
+                    except Exception as e:
+                        logger.error(f"Errore nel controllo dello stato della presa Tuya: {e}")
+                        return False, f"Errore nel controllo dello stato: {e}"
+                
+                try:
+                    if turn_on:
+                        device.turn_on()
+                        logger.info(f"Presa Tuya {smart_plug['device_id']} accesa")
+                    else:
+                        device.turn_off()
+                        logger.info(f"Presa Tuya {smart_plug['device_id']} spenta")
+                    return True, "Operazione completata con successo"
+                except Exception as e:
+                    logger.error(f"Errore nel controllo della presa Tuya: {e}")
+                    return False, f"Errore: {e}"
+
+            else:
+                logger.error(f"Tipo di presa non supportato: {smart_plug['type']}")
+                return False, f"Tipo di presa non supportato: {smart_plug['type']}"
+    except asyncio.TimeoutError:
+        logger.error(f"Timeout durante il controllo della presa {smart_plug.get('name', smart_plug.get('device_id', ''))}")
+        return False, "Timeout durante il controllo della presa"
     except Exception as e:
         logger.error(f"Errore nel controllo della presa: {e}")
         return False, f"Errore: {e}"
@@ -365,63 +368,75 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # --- Monitoraggio temperature ---
 async def monitor_miners(app):
     while True:
-        for miner in MINERS:
-            name = miner["name"]
-            cache = miner_cache[name]
-            data = get_cached_miner_data(miner)
-            if not data:
-                if CHAT_ID and not cache["offline_alert_sent"]:
-                    await app.bot.send_message(chat_id=CHAT_ID, text=f"⚠️ Miner {name} offline o API non raggiungibile!")
-                    cache["offline_alert_sent"] = True
-                continue
-            else:
-                cache["offline_alert_sent"] = False
+        try:
+            for miner in MINERS:
+                name = miner["name"]
+                cache = miner_cache[name]
+                data = get_cached_miner_data(miner)
+                if not data:
+                    if CHAT_ID and not cache["offline_alert_sent"]:
+                        await app.bot.send_message(chat_id=CHAT_ID, text=f"⚠️ Miner {name} offline o API non raggiungibile!")
+                        cache["offline_alert_sent"] = True
+                    continue
+                else:
+                    cache["offline_alert_sent"] = False
 
-            temp = safe_float_conversion(data.get('temp', 0))
-            if temp > TEMP_THRESHOLD:
-                if cache["overheat_start"] is None:
-                    cache["overheat_start"] = time.time()
-                elif time.time() - cache["overheat_start"] >= TEMP_DURATION:
-                    if CHAT_ID:
-                        await app.bot.send_message(chat_id=CHAT_ID, text=f"⚠️ Miner {name} temperatura alta: {temp:.1f}°C")
+                temp = safe_float_conversion(data.get('temp', 0))
+                if temp > TEMP_THRESHOLD:
+                    if cache["overheat_start"] is None:
+                        cache["overheat_start"] = time.time()
+                    elif time.time() - cache["overheat_start"] >= TEMP_DURATION:
+                        if CHAT_ID:
+                            await app.bot.send_message(chat_id=CHAT_ID, text=f"⚠️ Miner {name} temperatura alta: {temp:.1f}°C")
+                        cache["overheat_start"] = None
+                else:
                     cache["overheat_start"] = None
-            else:
-                cache["overheat_start"] = None
 
-            if temp >= TEMP_CRITICAL:
-                if CHAT_ID:
-                    await app.bot.send_message(chat_id=CHAT_ID, text=f"⚠️ Miner {name} temperatura critica {temp:.1f}°C!")
-                if miner.get("smart_plug"):
-                    success, message = await control_smart_plug(miner.get("smart_plug"), False)
-                    if not success:
-                        logger.error(f"Errore nello spegnimento della presa per temperatura critica: {message}")
+                if temp >= TEMP_CRITICAL:
+                    if CHAT_ID:
+                        await app.bot.send_message(chat_id=CHAT_ID, text=f"⚠️ Miner {name} temperatura critica {temp:.1f}°C!")
+                    if miner.get("smart_plug"):
+                        success, message = await control_smart_plug(miner.get("smart_plug"), False)
+                        if not success:
+                            logger.error(f"Errore nello spegnimento della presa per temperatura critica: {message}")
 
-        await asyncio.sleep(300)
+            await asyncio.sleep(300)
+        except asyncio.CancelledError:
+            logger.info("monitor_miners annullato")
+            raise
+        except Exception as e:
+            logger.error(f"Errore in monitor_miners: {e}")
+            await asyncio.sleep(300)  # Continua dopo un errore
 
 # --- Gestione dell'interruzione ---
 async def shutdown(application):
+    logger.info("Inizio processo di shutdown")
+    tasks = [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
+    logger.info(f"Task da annullare: {[task.get_name() for task in tasks]}")
+    for task in tasks:
+        task.cancel()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    
     for miner in MINERS:
         if miner.get("smart_plug") and miner["smart_plug"]["type"] in ["meross", "sonoff", "tuya"]:
             success, message = await control_smart_plug(miner.get("smart_plug"), False)
             if not success:
                 logger.error(f"Errore durante il logout per {miner['name']}: {message}")
-    await application.stop()
-    await application.shutdown()
-    logger.info("Bot chiuso correttamente")
 
-def handle_shutdown(loop, application):
-    tasks = [task for task in asyncio.all_tasks(loop) if task is not asyncio.current_task()]
-    for task in tasks:
-        task.cancel()
-    loop.run_until_complete(shutdown(application))
-    loop.stop()
-    loop.close()
+    if application.running:
+        logger.info("Arresto dell'applicazione")
+        await application.stop()
+        logger.info("Chiusura dell'applicazione")
+        await application.shutdown()
+        logger.info("Bot chiuso correttamente")
+    else:
+        logger.info("Applicazione già arrestata")
+
+def handle_shutdown(application):
+    asyncio.create_task(shutdown(application))
 
 # --- Main ---
 def main():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
     app = ApplicationBuilder().token(TOKEN).build()
 
     conv_handler = ConversationHandler(
@@ -442,17 +457,20 @@ def main():
 
     app.post_init = post_init
 
-    # Gestione dei segnali per Ctrl+C
+    def signal_handler(sig, frame):
+        logger.info(f"Segnale {sig} ricevuto, chiusura del bot...")
+        handle_shutdown(app)
+
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, lambda: handle_shutdown(loop, app))
+        signal.signal(sig, signal_handler)
 
     try:
-        app.run_polling()
         print("\n⚡ AxeOS Monitor v1.1 by PakyITA ⚡")
+        app.run_polling()
     except KeyboardInterrupt:
         logger.info("Interruzione ricevuta, chiusura del bot...")
-    finally:
-        loop.run_until_complete(shutdown(app))
+    except Exception as e:
+        logger.error(f"Errore durante l'esecuzione del bot: {e}")
 
 if __name__ == "__main__":
     main()
