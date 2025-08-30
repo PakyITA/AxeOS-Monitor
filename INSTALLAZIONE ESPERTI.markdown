@@ -102,29 +102,11 @@ Lo script richiede diverse librerie Python elencate nel file `requirements.txt`.
 
 1. Crea un file `requirements.txt` nella directory del progetto con il seguente contenuto (IL FILE DOVREBBE ESSERE GIA' PRESENTE):
    ```
-   # Bot Telegram
-   python-telegram-bot==20.3
+   python-telegram-bot>=20.0
+   meross_iot
+   tinytuya
+   requests
 
-   # Richieste HTTP
-   requests==2.31.0
-
-   # Scheduler
-   apscheduler==3.10.4
-
-   # Parsing HTML
-   beautifulsoup4==4.13.4
-
-   # Browser Automation (per scraping dinamico) - # Al momento non necessario
-   #playwright==1.54.0
-
-   # Grafici - # Al momento non necessario
-   #matplotlib==3.8.0
-
-   # Controllo prese smart Meross
-   meross-iot==0.4.7.3
-
-   # Controllo prese smart Tuya
-   tinytuya==1.15.0
    ```
    **Nota**: Le librerie `apscheduler`, `beautifulsoup4`, `playwright` e `matplotlib` non sono necessarie per lo script attuale, quindi non sono incluse. Se le usi per altre funzionalità, aggiungile al file.
 
